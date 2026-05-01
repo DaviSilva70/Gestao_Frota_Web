@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar - Gestão de Frota</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --bg-1: #0f172a;
+            --bg-2: #111827;
+            --accent: #2563eb;
+            --accent-2: #22c55e;
+            --surface: rgba(15, 23, 42, 0.72);
+            --border: rgba(255, 255, 255, 0.12);
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            font-family: "Manrope", sans-serif;
+            color: #e5e7eb;
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.35), transparent 32%),
+                radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.2), transparent 28%),
+                linear-gradient(160deg, var(--bg-1), var(--bg-2));
+        }
+
+        .login-shell {
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+        }
+
+        .login-card {
+            width: min(1080px, 100%);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(18px);
+        }
+
+        .login-aside {
+            padding: 44px;
+            background: linear-gradient(180deg, rgba(37, 99, 235, 0.15), rgba(15, 23, 42, 0));
+            border-right: 1px solid var(--border);
+        }
+
+        .brand-mark {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, var(--accent), #38bdf8);
+            color: white;
+            font-size: 1.75rem;
+            margin-bottom: 20px;
+        }
+
+        .eyebrow {
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            font-size: 0.75rem;
+            color: #93c5fd;
+        }
+
+        .login-title {
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            line-height: 1.05;
+            font-weight: 800;
+            margin: 12px 0 16px;
+        }
+
+        .login-copy {
+            color: #cbd5e1;
+            font-size: 1.02rem;
+            max-width: 42rem;
+        }
+
+        .login-panel {
+            padding: 44px;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .form-label {
+            color: #e5e7eb;
+            font-weight: 600;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            color: white;
+            border-radius: 14px;
+            padding: 0.85rem 1rem;
+        }
+
+        .form-control:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(96, 165, 250, 0.75);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.18);
+            color: white;
+        }
+
+        .role-choice {
+            display: grid;
+            gap: 12px;
+        }
+
+        .role-choice label {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 16px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            cursor: pointer;
+        }
+
+        .role-choice input {
+            margin-top: 0;
+        }
+
+        .role-choice label:has(input:checked) {
+            border-color: rgba(59, 130, 246, 0.9);
+            background: rgba(37, 99, 235, 0.18);
+        }
+
+        .role-title {
+            font-weight: 700;
+            color: white;
+            display: block;
+        }
+
+        .role-desc {
+            display: block;
+            color: #cbd5e1;
+            font-size: 0.92rem;
+        }
+
+        .btn-login {
+            background: linear-gradient(135deg, var(--accent), #1d4ed8);
+            border: none;
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            font-weight: 700;
+        }
+
+        .btn-login:hover {
+            filter: brightness(1.06);
+        }
+
+        .alert {
+            border-radius: 14px;
+        }
+
+        @media (max-width: 991px) {
+            .login-aside,
+            .login-panel {
+                padding: 28px;
+            }
+
+            .login-aside {
+                border-right: 0;
+                border-bottom: 1px solid var(--border);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-shell">
+        <div class="login-card row g-0">
+            <div class="col-lg-6 login-aside">
+                <div class="brand-mark">
+                    <i class="bi bi-car-front-fill"></i>
+                </div>
+                <div class="eyebrow">Gestão de Frota Web</div>
+                <h1 class="login-title">Acesso centralizado para admin e motorista.</h1>
+                <p class="login-copy">
+                    Entre com seu usuário e selecione o perfil correto. O administrador gerencia tudo; o motorista vê apenas os módulos liberados para sua operação diária.
+                </p>
+                <div class="mt-4 d-flex flex-wrap gap-2">
+                    <span class="badge rounded-pill text-bg-primary px-3 py-2">Administração total</span>
+                    <span class="badge rounded-pill text-bg-success px-3 py-2">Acesso por perfil</span>
+                    <span class="badge rounded-pill text-bg-info px-3 py-2">Controle por veículo</span>
+                </div>
+            </div>
+            <div class="col-lg-6 login-panel">
+                <h2 class="h4 fw-bold mb-2 text-white">Entrar no sistema</h2>
+                <p class="text-secondary mb-4">Use suas credenciais para continuar.</p>
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <form method="post" class="vstack gap-3">
+                    {% csrf_token %}
+                    <div>
+                        <label class="form-label" for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                        {{ form.username }}
+                        {{ form.username.errors }}
+                    </div>
+                    <div>
+                        <label class="form-label" for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+                        {{ form.password }}
+                        {{ form.password.errors }}
+                    </div>
+                    <div>
+                        <label class="form-label">Perfil de acesso</label>
+                        <div class="role-choice">
+                            {% for radio in form.perfil %}
+                            <label for="{{ radio.id_for_label }}">
+                                {{ radio.tag }}
+                                <span>
+                                    <span class="role-title">{{ radio.choice_label }}</span>
+                                    {% if radio.choice_value == 'admin' %}
+                                    <span class="role-desc">Libera todas as telas e controles do sistema.</span>
+                                    {% else %}
+                                    <span class="role-desc">Libera somente as telas operacionais do motorista.</span>
+                                    {% endif %}
+                                </span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {{ form.perfil.errors }}
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-login w-100">
+                        Entrar
+                    </button>
+                </form>
+                <div class="mt-4 text-center">
+                    <p class="text-secondary mb-2">Ainda não tem cadastro?</p>
+                    <a href="{% url 'cadastro_motorista' %}" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-person-plus"></i> Cadastre-se aqui
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block title %}Motorista - {{ motorista.nome }}{% endblock %}
+
+{% block page_title %}{{ motorista.nome }}{% endblock %}
+
+{% block content %}
+<section class="page-hero mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-7">
+            <div class="page-eyebrow">Perfil do Condutor</div>
+            <h2 class="section-title mb-2">{{ motorista.nome }}</h2>
+            <p class="page-subtitle">Visualize dados de contato, validade da CNH e o histórico de uso de veículos pelo motorista.</p>
+        </div>
+        <div class="col-lg-5">
+            <div class="stats-strip">
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">CNH</div>
+                    <div class="stats-strip-value">{{ motorista.cnh }}</div>
+                </div>
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">Status</div>
+                    <div class="stats-strip-value">{% if motorista.ativo %}Ativo{% else %}Inativo{% endif %}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="panel-title">Dados do Motorista</div>
+                    <p class="panel-subtitle">Informações cadastrais e identificação visual.</p>
+                </div>
+            </div>
+            <div class="card-body text-center">
+                {% if motorista.foto %}
+                <img src="{{ motorista.foto.url }}" class="detail-avatar mb-3" alt="{{ motorista.nome }}">
+                {% else %}
+                <div class="detail-avatar-placeholder mb-3 mx-auto">
+                    <i class="bi bi-person fs-1"></i>
+                </div>
+                {% endif %}
+                
+                <form class="upload-panel form-stack mb-4" method="post" enctype="multipart/form-data" action="{% url 'motorista_upload_foto' pk=motorista.pk %}">
+                    {% csrf_token %}
+                    <input type="file" name="foto" class="form-control mb-2" accept="image/*">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-upload"></i> Enviar Foto
+                    </button>
+                </form>
+                
+                <dl class="row text-start detail-grid">
+                    <dt class="col-sm-4">Nome</dt>
+                    <dd class="col-sm-8">{{ motorista.nome }}</dd>
+                    
+                    <dt class="col-sm-4">CNH</dt>
+                    <dd class="col-sm-8">{{ motorista.cnh }}</dd>
+                    
+                    <dt class="col-sm-4">Validade</dt>
+                    <dd class="col-sm-8">{{ motorista.validade_cnh|date:"d/m/Y"|default:"-" }}</dd>
+                    
+                    <dt class="col-sm-4">Telefone</dt>
+                    <dd class="col-sm-8">{{ motorista.telefone|default:"-" }}</dd>
+                    
+                    <dt class="col-sm-4">Email</dt>
+                    <dd class="col-sm-8">{{ motorista.email|default:"-" }}</dd>
+                    
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">
+                        {% if motorista.ativo %}<span class="badge bg-success">Ativo</span>
+                        {% else %}<span class="badge bg-secondary">Inativo</span>{% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="panel-title">Histórico de Uso</div>
+                <p class="panel-subtitle">Relação de vínculos do motorista com veículos e períodos de utilização.</p>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Veículo</th>
+                            <th>Data Início</th>
+                            <th>Data Fim</th>
+                            <th>Km Inicial</th>
+                            <th>Km Final</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for uso in usos %}
+                        <tr>
+                            <td><a class="table-link" href="{% url 'veiculo_detail' uso.veiculo.pk %}">{{ uso.veiculo.placa }}</a></td>
+                            <td>{{ uso.data_inicio|date:"d/m/Y" }}</td>
+                            <td>{{ uso.data_fim|date:"d/m/Y"|default:"-" }}</td>
+                            <td>{{ uso.km_inicial }}</td>
+                            <td>{{ uso.km_final|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-muted empty-state">Nenhum registro</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

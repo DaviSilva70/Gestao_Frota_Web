@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - Gestão de Frota{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<section class="page-hero mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-7">
+            <div class="page-eyebrow">Visão Executiva</div>
+            <h2 class="section-title mb-2">Resumo estratégico da frota</h2>
+            <p class="page-subtitle">Veja rapidamente o tamanho da operação, a pressão de custos e os pontos que exigem atenção imediata.</p>
+        </div>
+        <div class="col-lg-5">
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="hero-metric">
+                        <div class="hero-metric-label">Frota ativa</div>
+                        <div class="hero-metric-value">{{ veiculos_ativos }}</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="hero-metric">
+                        <div class="hero-metric-label">Alertas vivos</div>
+                        <div class="hero-metric-value">{{ alertas_pendentes }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- KPI Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card primary">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-white-50 mb-2">Total Veículos</h6>
+                    <h2 class="mb-0">{{ total_veiculos }}</h2>
+                </div>
+                <i class="bi bi-car-front fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card success">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-white-50 mb-2">Veículos Ativos</h6>
+                    <h2 class="mb-0">{{ veiculos_ativos }}</h2>
+                </div>
+                <i class="bi bi-check-circle fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card warning">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-white-50 mb-2">Em Manutenção</h6>
+                    <h2 class="mb-0">{{ veiculos_manutencao }}</h2>
+                </div>
+                <i class="bi bi-wrench fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card info">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="text-white-50 mb-2">Motoristas</h6>
+                    <h2 class="mb-0">{{ total_motoristas }}</h2>
+                </div>
+                <i class="bi bi-people fs-1 opacity-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Financial Summary -->
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="panel-title mb-3">
+                    <i class="bi bi-cash-stack text-success"></i> Gastos do Mês
+                </h5>
+                <div class="row">
+                    <div class="col-6">
+                        <p class="text-muted mb-1">Despesas</p>
+                        <h4>R$ {{ gastos_mes|floatformat:2 }}</h4>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted mb-1">Manutenção</p>
+                        <h4>R$ {{ manutencoes_mes|floatformat:2 }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="panel-title mb-3">
+                    <i class="bi bi-exclamation-triangle text-warning"></i> Alertas
+                </h5>
+                <div class="row">
+                    <div class="col-6">
+                        <p class="text-muted mb-1">Pendentes</p>
+                        <h4>{{ alertas_pendentes }}</h4>
+                    </div>
+                    <div class="col-6">
+                        <p class="text-muted mb-1">Docs. Vencidos</p>
+                        <h4 class="text-danger">{{ docs_vencidos }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Vehicles -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <div class="panel-title"><i class="bi bi-clock-history"></i> Últimos Veículos Cadastrados</div>
+            <p class="panel-subtitle">Entradas recentes registradas no sistema.</p>
+        </div>
+        <a href="{% url 'veiculo_list' %}" class="action-chip">Ver Todos <i class="bi bi-arrow-right"></i></a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Placa</th>
+                        <th>Modelo</th>
+                        <th>Marca</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for veiculo in ultimos_veiculos %}
+                    <tr>
+                        <td><a class="table-link" href="{% url 'veiculo_detail' veiculo.pk %}">{{ veiculo.placa }}</a></td>
+                        <td>{{ veiculo.modelo }}</td>
+                        <td>{{ veiculo.marca|default:"-" }}</td>
+                        <td>
+                            <span class="badge-status badge-{{ veiculo.status }}">
+                                {{ veiculo.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ veiculo.criado_em|date:"d/m/Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted empty-state">Nenhum veículo cadastrado</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

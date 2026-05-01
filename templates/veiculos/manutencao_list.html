@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}Manutenções - Gestão de Frota{% endblock %}
+
+{% block page_title %}Manutenções{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Formulario -->
+    {% if can_create %}
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header card-header-accent">
+                <div class="panel-title text-white mb-1"><i class="bi bi-wrench"></i> Nova Manutenção</div>
+                <p class="panel-subtitle text-white-50">Registre a manutenção do veículo.</p>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/manutencoes/criar/">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <label class="form-label">Veículo</label>
+                        <select name="veiculo" class="form-select" required>
+                            <option value="">Selecione</option>
+                            {% for v in veiculos %}
+                            <option value="{{ v.id }}">{{ v.placa }} - {{ v.modelo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Tipo</label>
+                        <select name="tipo" class="form-select" required>
+                            <option value="">Selecione</option>
+                            <option value="preventiva">Preventiva</option>
+                            <option value="corretiva">Corretiva</option>
+                            <option value="trocaoleo">Troca de Óleo</option>
+                            <option value="freios">Freios</option>
+                            <option value="pneus">Pneus</option>
+                            <option value="revisao">Revisão</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Data</label>
+                        <input type="date" name="data_manutencao" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Valor</label>
+                        <input type="number" name="valor" class="form-control" step="0.01" required min="0">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Descrição</label>
+                        <textarea name="descricao" class="form-control" rows="2" placeholder="Descrição do serviço..."></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Oficina</label>
+                        <input type="text" name="oficina" class="form-control" placeholder="Nome da oficina">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Próxima Manutenção</label>
+                        <input type="date" name="data_proxima" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-2">
+                        <i class="bi bi-check-lg"></i> Cadastrar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div>
+                    <div class="panel-title mb-2">Acesso restrito</div>
+                    <p class="text-muted mb-0">Seu perfil permite apenas visualização. Os lançamentos são feitos pela administração.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Lista -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <form method="get" class="row g-3 mt-1 filter-toolbar">
+                    <div class="col-md-4">
+                        <select class="form-select" name="tipo">
+                            <option value="">Todos Tipos</option>
+                            <option value="preventiva">Preventiva</option>
+                            <option value="corretiva">Corretiva</option>
+                            <option value="trocaoleo">Troca de Óleo</option>
+                            <option value="freios">Freios</option>
+                            <option value="pneus">Pneus</option>
+                            <option value="revisao">Revisão</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <select class="form-select" name="veiculo">
+                            <option value="">Todos os veículos</option>
+                            {% for v in veiculos %}
+                            <option value="{{ v.id }}">{{ v.placa }} - {{ v.modelo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-search"></i></button>
+                        <a href="{% url 'manutencao_list' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="card bg-warning bg-opacity-10">
+                            <div class="card-body">
+                                <h6 class="text-muted">Total Gasto</h6>
+                                <h4>R$ {{ total_gasto|floatformat:2 }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Veículo</th>
+                            <th>Tipo</th>
+                            <th>Descrição</th>
+                            <th>Valor</th>
+                            <th>Próxima</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in page_obj %}
+                        <tr>
+                            <td>{{ m.data_manutencao|date:"d/m/Y" }}</td>
+                            <td>{{ m.veiculo.placa }}</td>
+                            <td>{{ m.get_tipo_display }}</td>
+                            <td>{{ m.descricao|truncatechars:50 }}</td>
+                            <td>R$ {{ m.valor }}</td>
+                            <td>{{ m.data_proxima|date:"d/m/Y"|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted">Nenhum registro</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

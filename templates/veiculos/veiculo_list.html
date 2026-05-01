@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+
+{% block title %}Veículos - Gestão de Frota{% endblock %}
+
+{% block page_title %}Veículos{% endblock %}
+
+{% block content %}
+<section class="page-hero mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-7">
+            <div class="page-eyebrow">Ativos da Operação</div>
+            <h2 class="section-title mb-2">Cadastro e monitoramento da frota</h2>
+            <p class="page-subtitle">Mantenha os veículos organizados com status claros, filtros rápidos e acesso imediato ao detalhe operacional.</p>
+        </div>
+        <div class="col-lg-5">
+            <div class="row g-3">
+                <div class="col-6">
+                    <div class="hero-metric">
+                        <div class="hero-metric-label">Página atual</div>
+                        <div class="hero-metric-value">{{ page_obj.number }}</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="hero-metric">
+                        <div class="hero-metric-label">Itens exibidos</div>
+                        <div class="hero-metric-value">{{ page_obj|length }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="row g-4">
+    <!-- Formulario -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header card-header-accent">
+                <div class="panel-title text-white mb-1"><i class="bi bi-car-front"></i> Novo Veículo</div>
+                <p class="panel-subtitle text-white-50">Cadastre ativos com os dados essenciais da operação.</p>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <label class="form-label">Placa</label>
+                        <input type="text" name="placa" class="form-control" placeholder="ABC-1234" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Modelo</label>
+                        <input type="text" name="modelo" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Marca</label>
+                        <input type="text" name="marca" class="form-control">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <label class="form-label">Ano</label>
+                            <input type="number" name="ano" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Tipo</label>
+                            <select name="tipo" class="form-select">
+                                <option value="">Selecione</option>
+                                <option value="carro">Carro</option>
+                                <option value="moto">Moto</option>
+                                <option value="caminhao">Caminhão</option>
+                                <option value="van">Van</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Cor</label>
+                        <input type="text" name="cor" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Chassi</label>
+                        <input type="text" name="chassi" class="form-control">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="ativo">Ativo</option>
+                            <option value="manutencao">Manutenção</option>
+                            <option value="inativo">Inativo</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-2">
+                        <i class="bi bi-check-lg"></i> Cadastrar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <div>
+                        <div class="panel-title">Lista de Veículos</div>
+                        <p class="panel-subtitle">Use filtros para localizar ativos específicos com mais rapidez.</p>
+                    </div>
+                </div>
+                <form method="get" class="row g-3 mt-1 filter-toolbar">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" placeholder="Buscar..." name="busca" value="{{ busca|default:'' }}">
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="status">
+                            <option value="">Todos Status</option>
+                            <option value="ativo" {% if status_filter == 'ativo' %}selected{% endif %}>Ativo</option>
+                            <option value="manutencao" {% if status_filter == 'manutencao' %}selected{% endif %}>Manutenção</option>
+                            <option value="inativo" {% if status_filter == 'inativo' %}selected{% endif %}>Inativo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="tipo">
+                            <option value="">Todos Tipos</option>
+                            <option value="carro" {% if tipo_filter == 'carro' %}selected{% endif %}>Carro</option>
+                            <option value="moto" {% if tipo_filter == 'moto' %}selected{% endif %}>Moto</option>
+                            <option value="caminhao" {% if tipo_filter == 'caminhao' %}selected{% endif %}>Caminhão</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-search"></i></button>
+                        <a href="{% url 'veiculo_list' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Placa</th>
+                            <th>Modelo</th>
+                            <th>Marca</th>
+                            <th>Tipo</th>
+                            <th>Ano</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for veiculo in page_obj %}
+                        <tr>
+                            <td><a class="table-link" href="{% url 'veiculo_detail' veiculo.pk %}">{{ veiculo.placa }}</a></td>
+                            <td>{{ veiculo.modelo }}</td>
+                            <td>{{ veiculo.marca|default:'-' }}</td>
+                            <td>{{ veiculo.get_tipo_display|default:'-' }}</td>
+                            <td>{{ veiculo.ano|default:'-' }}</td>
+                            <td>
+                                <span class="badge-status badge-{{ veiculo.status }}">
+                                    {{ veiculo.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'veiculo_detail' veiculo.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4 empty-state">
+                                <i class="bi bi-car-front fs-1 d-block mb-2"></i>
+                                Nenhum veículo encontrado
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                {% if page_obj.has_other_pages %}
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1">«</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹</a></li>
+                        {% endif %}
+                        <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">›</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">»</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

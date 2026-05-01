@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Motoristas - Gestão de Frota{% endblock %}
+
+{% block page_title %}Motoristas{% endblock %}
+
+{% block content %}
+<section class="page-hero mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-7">
+            <div class="page-eyebrow">Equipe de Condução</div>
+            <h2 class="section-title mb-2">Controle profissional dos motoristas</h2>
+            <p class="page-subtitle">Mantenha a base de condutores organizada com dados de contato e validade documental sempre acessíveis.</p>
+        </div>
+        <div class="col-lg-5">
+            <div class="hero-metric">
+                <div class="hero-metric-label">Total listado</div>
+                <div class="hero-metric-value">{{ motoristas|length }}</div>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="row g-4">
+    <!-- Formulario adicionar -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header card-header-accent">
+                <div class="panel-title text-white mb-1"><i class="bi bi-person-plus"></i> Novo Motorista</div>
+                <p class="panel-subtitle text-white-50">Cadastre condutores com informações essenciais para operação e conformidade.</p>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Nome</label>
+                        <input type="text" name="nome" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">CNH</label>
+                        <input type="text" name="cnh" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Validade CNH</label>
+                        <input type="date" name="validade_cnh" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Telefone</label>
+                        <input type="text" name="telefone" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control">
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" name="ativo" class="form-check-input" id="ativo" checked>
+                        <label class="form-check-label" for="ativo">Ativo</label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-lg"></i> Cadastrar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Lista -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="panel-title">Lista de Motoristas</div>
+                <p class="panel-subtitle mb-3">Acompanhe rapidamente situação e validade dos condutores cadastrados.</p>
+                <form method="get" class="row g-3">
+                    <div class="col-sm-6 col-md-5">
+                        <input type="text" class="form-control" placeholder="Buscar..." name="busca">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i></button>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>CNH</th>
+                            <th>Telefone</th>
+                            <th>Email</th>
+                            <th>Validade CNH</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in motoristas %}
+                        <tr>
+                            <td><a class="table-link" href="{% url 'motorista_detail' m.pk %}">{{ m.nome }}</a></td>
+                            <td>{{ m.cnh }}</td>
+                            <td>{{ m.telefone|default:"-" }}</td>
+                            <td>{{ m.email|default:"-" }}</td>
+                            <td>{{ m.validade_cnh|date:"d/m/Y"|default:"-" }}</td>
+                            <td>
+                                {% if m.ativo %}
+                                <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'motorista_detail' m.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4 empty-state">
+                                <i class="bi bi-person-badge fs-1 d-block mb-2"></i>
+                                Nenhum motorista cadastrado
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

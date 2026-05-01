@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Relatório Veículos - Gestão de Frota{% endblock %}
+
+{% block page_title %}Relatório por Veículo{% endblock %}
+
+{% block content %}
+<section class="page-hero mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-7">
+            <div class="page-eyebrow">Custos por Ativo</div>
+            <h2 class="section-title mb-2">Comparativo financeiro da frota</h2>
+            <p class="page-subtitle">Visualize rapidamente quais veículos concentram manutenção, abastecimento e custo total acumulado.</p>
+        </div>
+        <div class="col-lg-5">
+            <div class="hero-metric">
+                <div class="hero-metric-label">Veículos no relatório</div>
+                <div class="hero-metric-value">{{ veiculos|length }}</div>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="card">
+    <div class="card-header">
+        <div class="panel-title">Custos por Veículo</div>
+        <p class="panel-subtitle">Ranking consolidado de custos operacionais por ativo cadastrado.</p>
+    </div>
+    <div class="card-body">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Veículo</th>
+                    <th>Manutenções</th>
+                    <th>Abastecimentos</th>
+                    <th>Custo Manutenção</th>
+                    <th>Custo Abastecimento</th>
+                    <th>Custo Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in veiculos %}
+                <tr>
+                    <td><a class="table-link" href="{% url 'veiculo_detail' v.pk %}"><strong>{{ v.placa }}</strong> - {{ v.modelo }}</a></td>
+                    <td>{{ v.total_manutencoes|default:0 }}</td>
+                    <td>{{ v.total_abastecimentos|default:0 }}</td>
+                    <td>R$ {{ v.custo_manutencao|default:0|floatformat:2 }}</td>
+                    <td>R$ {{ v.custo_abastecimento|default:0|floatformat:2 }}</td>
+                    <td><strong>R$ {{ v.custo_manutencao|add:v.custo_abastecimento|floatformat:2 }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted empty-state">Sem dados</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

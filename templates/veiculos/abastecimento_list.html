@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Abastecimentos - Gestão de Frota{% endblock %}
+
+{% block page_title %}Abastecimentos{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Formulario -->
+    {% if can_create %}
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header card-header-accent">
+                <div class="panel-title text-white mb-1"><i class="bi bi-fuel-pump"></i> Novo Abastecimento</div>
+                <p class="panel-subtitle text-white-50">Registre o abastecimento com os dados do veículo.</p>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/abastecimentos/criar/">
+                    {% csrf_token %}
+                    <div class="mb-2">
+                        <label class="form-label">Veículo</label>
+                        <select name="veiculo" class="form-select" required>
+                            <option value="">Selecione</option>
+                            {% for v in veiculos %}
+                            <option value="{{ v.id }}">{{ v.placa }} - {{ v.modelo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Data</label>
+                        <input type="date" name="data" class="form-control" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Km</label>
+                        <input type="number" name="km" class="form-control" required min="0" step="0.001" placeholder="Ex: 127.320">
+                    </div>
+                    <div class="row mb-2">
+                        <div class="col-6">
+                            <label class="form-label">Litros</label>
+                            <input type="number" name="litros" class="form-control" step="0.01" required min="0">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Valor/Litro</label>
+                            <input type="number" name="valor_litro" class="form-control" step="0.01" required min="0">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Combustível</label>
+                        <select name="tipo_combustivel" class="form-select" required>
+                            <option value="">Selecione</option>
+                            <option value="gasolina">Gasolina</option>
+                            <option value="etanol">Etanol</option>
+                            <option value="diesel">Diesel</option>
+                            <option value="gnv">GNV</option>
+                            <option value="eletrico">Elétrico</option>
+                            <option value="flex">Flex</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Posto</label>
+                        <input type="text" name="posto" class="form-control" placeholder="Nome do posto">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 mt-2">
+                        <i class="bi bi-check-lg"></i> Cadastrar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div>
+                    <div class="panel-title mb-2">Acesso restrito</div>
+                    <p class="text-muted mb-0">Seu perfil permite apenas visualização. Os lançamentos são feitos pela administração.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Lista -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <form method="get" class="row g-3 mt-1 filter-toolbar">
+                    <div class="col-md-4">
+                        <select class="form-select" name="veiculo">
+                            <option value="">Todos os veículos</option>
+                            {% for v in veiculos %}
+                            <option value="{{ v.id }}">{{ v.placa }} - {{ v.modelo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-search"></i></button>
+                        <a href="{% url 'abastecimento_list' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Total Litros</h6>
+                                <h4>{{ total_litros|floatformat:2 }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="text-muted">Total Valor</h6>
+                                <h4>R$ {{ total_valor|floatformat:2 }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Veículo</th>
+                            <th>Km</th>
+                            <th>Litros</th>
+                            <th>Valor/Litro</th>
+                            <th>Total</th>
+                            <th>Combustível</th>
+                            <th>Posto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in page_obj %}
+                        <tr>
+                            <td>{{ a.data|date:"d/m/Y" }}</td>
+                            <td>{{ a.veiculo.placa }}</td>
+                            <td>{{ a.km }}</td>
+                            <td>{{ a.litros }}</td>
+                            <td>R$ {{ a.valor_litro }}</td>
+                            <td>R$ {{ a.valor_total }}</td>
+                            <td>{{ a.get_tipo_combustivel_display }}</td>
+                            <td>{{ a.posto|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="text-center text-muted">Nenhum registro</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

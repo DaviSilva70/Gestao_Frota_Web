@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}Documentos - Gestão de Frota{% endblock %}
+
+{% block page_title %}Documentos{% endblock %}
+
+{% block content %}
+<section class="page-hero mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-7">
+            <div class="page-eyebrow">Compliance da Frota</div>
+            <h2 class="section-title mb-2">Controle documental dos veículos</h2>
+            <p class="page-subtitle">Gerencie validade, numeração e vínculo dos documentos essenciais da frota em uma única operação.</p>
+        </div>
+        <div class="col-lg-5">
+            <div class="stats-strip">
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">Válidos</div>
+                    <div class="stats-strip-value">{{ documentos_validos }}</div>
+                </div>
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">Vencidos</div>
+                    <div class="stats-strip-value">{{ documentos_vencidos }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header card-header-accent">
+                <div class="panel-title text-white mb-1"><i class="bi bi-folder-plus"></i> Novo Documento</div>
+                <p class="panel-subtitle text-white-50">Associe documentos ao veículo e acompanhe suas validades.</p>
+            </div>
+            <div class="card-body">
+                <form class="form-stack" method="post" enctype="multipart/form-data" action="{% url 'documento_create' %}">
+                    {% csrf_token %}
+                    {{ form.veiculo.label_tag }}
+                    {{ form.veiculo }}
+                    {{ form.tipo.label_tag }}
+                    {{ form.tipo }}
+                    {{ form.numero.label_tag }}
+                    {{ form.numero }}
+                    {{ form.data_emissao.label_tag }}
+                    {{ form.data_emissao }}
+                    {{ form.data_validade.label_tag }}
+                    {{ form.data_validade }}
+                    {{ form.documento_file.label_tag }}
+                    {{ form.documento_file }}
+                    {{ form.observacoes.label_tag }}
+                    {{ form.observacoes }}
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-lg"></i> Cadastrar Documento
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="panel-title">Lista de Documentos</div>
+                <p class="panel-subtitle mb-3">Filtre por tipo, veículo e situação de validade para localizar pendências com rapidez.</p>
+                <form method="get" class="row g-3 filter-toolbar">
+                    <div class="col-md-4">
+                        <select class="form-select" name="veiculo">
+                            <option value="">Todos Veículos</option>
+                            {% for item in veiculos %}
+                            <option value="{{ item.pk }}" {% if veiculo_filter == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.placa }} - {{ item.modelo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="tipo">
+                            <option value="">Todos Tipos</option>
+                            <option value="crlv" {% if tipo_filter == 'crlv' %}selected{% endif %}>CRLV</option>
+                            <option value="seguro" {% if tipo_filter == 'seguro' %}selected{% endif %}>Seguro</option>
+                            <option value="ipva" {% if tipo_filter == 'ipva' %}selected{% endif %}>IPVA</option>
+                            <option value="licenciamento" {% if tipo_filter == 'licenciamento' %}selected{% endif %}>Licenciamento</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="status_validade">
+                            <option value="">Todos Status</option>
+                            <option value="valido" {% if status_validade_filter == 'valido' %}selected{% endif %}>Válido</option>
+                            <option value="vencido" {% if status_validade_filter == 'vencido' %}selected{% endif %}>Vencido</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-search"></i></button>
+                        <a href="{% url 'documento_list' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Veículo</th>
+                                <th>Tipo</th>
+                                <th>Número</th>
+                                <th>Emissão</th>
+                                <th>Validade</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for documento in page_obj %}
+                            <tr>
+                                <td><a class="table-link" href="{% url 'veiculo_detail' documento.veiculo.pk %}">{{ documento.veiculo.placa }}</a></td>
+                                <td>{{ documento.get_tipo_display }}</td>
+                                <td>{{ documento.numero }}</td>
+                                <td>{{ documento.data_emissao|date:"d/m/Y"|default:"-" }}</td>
+                                <td>{{ documento.data_validade|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if documento.status_validade == 'vencido' %}
+                                    <span class="badge-status badge-inativo">Vencido</span>
+                                    {% else %}
+                                    <span class="badge-status badge-ativo">Válido</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted empty-state">
+                                    <i class="bi bi-folder-x fs-1 d-block mb-2"></i>
+                                    Nenhum documento encontrado
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if page_obj.has_other_pages %}
+                <nav>
+                    <ul class="pagination justify-content-center mt-3">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page=1">«</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">‹</a></li>
+                        {% endif %}
+                        <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">›</a></li>
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">»</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

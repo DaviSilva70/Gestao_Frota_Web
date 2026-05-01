@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+
+{% block title %}Detalhes - {{ veiculo.placa }}{% endblock %}
+
+{% block page_title %}{{ veiculo.placa }}{% endblock %}
+
+{% block content %}
+<section class="page-hero mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-7">
+            <div class="page-eyebrow">Ficha do Ativo</div>
+            <h2 class="section-title mb-2">{{ veiculo.modelo }}{% if veiculo.marca %} · {{ veiculo.marca }}{% endif %}</h2>
+            <p class="page-subtitle">
+                {% if user.perfil_motorista %}
+                Consulte abastecimentos e manutenções do veículo vinculado ao seu acesso.
+                {% else %}
+                Acompanhe status, documentação, abastecimentos, manutenções e ocorrências do veículo em um único painel.
+                {% endif %}
+            </p>
+        </div>
+        <div class="col-lg-5">
+            <div class="stats-strip">
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">Placa</div>
+                    <div class="stats-strip-value">{{ veiculo.placa }}</div>
+                </div>
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">Status</div>
+                    <div class="stats-strip-value">{{ veiculo.get_status_display }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<div class="row g-4">
+    <!-- Vehicle Info -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="panel-title"><i class="bi bi-car-front"></i> Dados do Veículo</div>
+                    <p class="panel-subtitle">Informações cadastrais e imagem do ativo.</p>
+                </div>
+                {% if not user.perfil_motorista %}
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editarModal">
+                    <i class="bi bi-pencil"></i> Editar
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body text-center">
+                {% if veiculo.imagem %}
+                <img src="{{ veiculo.imagem.url }}" class="detail-avatar mb-3" alt="{{ veiculo.placa }}">
+                {% else %}
+                <div class="detail-avatar-placeholder mb-3 mx-auto">
+                    <div>
+                        <i class="bi bi-car-front fs-1"></i>
+                        <p class="text-muted mb-0 mt-2">Sem foto</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Upload de imagem -->
+                {% if not user.perfil_motorista %}
+                <form class="upload-panel form-stack mb-4" method="post" enctype="multipart/form-data" action="{% url 'veiculo_upload_imagem' veiculo.pk %}">
+                    {% csrf_token %}
+                    <input type="file" name="imagem" class="form-control mb-2" accept="image/*">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-upload"></i> Enviar Foto
+                    </button>
+                </form>
+                {% endif %}
+                <dl class="row text-start detail-grid">
+                    <dt class="col-sm-4">Placa</dt>
+                    <dd class="col-sm-8"><strong>{{ veiculo.placa }}</strong></dd>
+                    
+                    <dt class="col-sm-4">Modelo</dt>
+                    <dd class="col-sm-8">{{ veiculo.modelo }}</dd>
+                    
+                    <dt class="col-sm-4">Marca</dt>
+                    <dd class="col-sm-8">{{ veiculo.marca|default:'-' }}</dd>
+                    
+                    <dt class="col-sm-4">Tipo</dt>
+                    <dd class="col-sm-8">{{ veiculo.get_tipo_display|default:'-' }}</dd>
+                    
+                    <dt class="col-sm-4">Ano</dt>
+                    <dd class="col-sm-8">{{ veiculo.ano|default:'-' }}</dd>
+                    
+                    <dt class="col-sm-4">Cor</dt>
+                    <dd class="col-sm-8">{{ veiculo.cor|default:'-' }}</dd>
+                    
+                    <dt class="col-sm-4">Chassi</dt>
+                    <dd class="col-sm-8">{{ veiculo.chassi|default:'-' }}</dd>
+                    
+                    <dt class="col-sm-4">Status</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge-status badge-{{ veiculo.status }}">
+                            {{ veiculo.get_status_display }}
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="col-md-8">
+        <div class="tab-shell">
+        <ul class="nav nav-tabs soft-tabs" id="veiculoTabs" role="tablist">
+            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#abastecimentos">Abastecimentos</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#manutencoes">Manutenções</button></li>
+            {% if not user.perfil_motorista %}
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#documentos">Documentos</button></li>
+            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#ocorrencias">Ocorrências</button></li>
+            {% endif %}
+        </ul>
+        
+        <div class="tab-content tab-panel">
+            <!-- Abastecimentos -->
+            <div class="tab-pane fade show active" id="abastecimentos">
+                <div class="panel-title mb-3">Últimos Abastecimentos</div>
+                <table class="table table-sm">
+                    <thead><tr><th>Data</th><th>Km</th><th>Litros</th><th>Valor</th></tr></thead>
+                    <tbody>
+                        {% for item in abastecimentos %}
+                        <tr>
+                            <td>{{ item.data|date:"d/m/Y" }}</td>
+                            <td>{{ item.km }}</td>
+                            <td>{{ item.litros }}</td>
+                            <td>R$ {{ item.valor_total }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-muted empty-state">Nenhum abastecimento</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Manutencoes -->
+            <div class="tab-pane fade" id="manutencoes">
+                <div class="panel-title mb-3">Últimas Manutenções</div>
+                <table class="table table-sm">
+                    <thead><tr><th>Data</th><th>Tipo</th><th>Valor</th></tr></thead>
+                    <tbody>
+                        {% for item in manutencoes %}
+                        <tr>
+                            <td>{{ item.data_manutencao|date:"d/m/Y" }}</td>
+                            <td>{{ item.get_tipo_display }}</td>
+                            <td>R$ {{ item.valor }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="3" class="text-muted empty-state">Nenhuma manutenção</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Documentos -->
+            {% if not user.perfil_motorista %}
+            <div class="tab-pane fade" id="documentos">
+                <div class="panel-title mb-3">Documentos</div>
+                <table class="table table-sm">
+                    <thead><tr><th>Tipo</th><th>Número</th><th>Validade</th><th>Status</th></tr></thead>
+                    <tbody>
+                        {% for item in documentos %}
+                        <tr>
+                            <td>{{ item.get_tipo_display }}</td>
+                            <td>{{ item.numero }}</td>
+                            <td>{{ item.data_validade|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if item.status_validade == 'vencido' %}
+                                <span class="badge bg-danger">Vencido</span>
+                                {% else %}
+                                <span class="badge bg-success">Válido</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-muted empty-state">Nenhum documento</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Ocorrencias -->
+            <div class="tab-pane fade" id="ocorrencias">
+                <div class="panel-title mb-3">Ocorrências</div>
+                <table class="table table-sm">
+                    <thead><tr><th>Data</th><th>Tipo</th><th>Status</th><th>Valor</th></tr></thead>
+                    <tbody>
+                        {% for item in ocorrencias %}
+                        <tr>
+                            <td>{{ item.data|date:"d/m/Y" }}</td>
+                            <td>{{ item.get_tipo_display }}</td>
+                            <td>{{ item.get_status_display }}</td>
+                            <td>R$ {{ item.valor|default:"0" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-muted empty-state">Nenhuma ocorrência</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% endif %}
+        </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

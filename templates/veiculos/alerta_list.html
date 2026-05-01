@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Alertas - Gestão de Frota{% endblock %}
+
+{% block page_title %}Alertas{% endblock %}
+
+{% block content %}
+<section class="page-hero mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-7">
+            <div class="page-eyebrow">Atenção Operacional</div>
+            <h2 class="section-title mb-2">Gestão de alertas da frota</h2>
+            <p class="page-subtitle">Centralize lembretes e pendências de documentos, manutenção e obrigações operacionais em uma única tela.</p>
+        </div>
+        <div class="col-lg-5">
+            <div class="stats-strip">
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">Pendentes</div>
+                    <div class="stats-strip-value">{{ alertas_pendentes }}</div>
+                </div>
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">Concluídos</div>
+                    <div class="stats-strip-value">{{ alertas_concluidos }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header card-header-accent">
+                <div class="panel-title text-white mb-1"><i class="bi bi-bell"></i> Novo Alerta</div>
+                <p class="panel-subtitle text-white-50">Crie alertas manuais para acompanhamento operacional.</p>
+            </div>
+            <div class="card-body">
+                <form class="form-stack" method="post" action="{% url 'alerta_create' %}">
+                    {% csrf_token %}
+                    {{ form.veiculo.label_tag }}
+                    {{ form.veiculo }}
+                    {{ form.mensagem.label_tag }}
+                    {{ form.mensagem }}
+                    {{ form.tipo.label_tag }}
+                    {{ form.tipo }}
+                    {{ form.data_alerta.label_tag }}
+                    {{ form.data_alerta }}
+                    {{ form.status.label_tag }}
+                    {{ form.status }}
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-lg"></i> Cadastrar Alerta
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="panel-title">Lista de Alertas</div>
+                <p class="panel-subtitle mb-3">Filtre por veículo, tipo e situação para acompanhar as pendências abertas.</p>
+                <form method="get" class="row g-3 filter-toolbar">
+                    <div class="col-md-4">
+                        <select class="form-select" name="veiculo">
+                            <option value="">Todos Veículos</option>
+                            {% for item in veiculos %}
+                            <option value="{{ item.pk }}" {% if veiculo_filter == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.placa }} - {{ item.modelo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="tipo">
+                            <option value="">Todos Tipos</option>
+                            <option value="cnh" {% if tipo_filter == 'cnh' %}selected{% endif %}>CNH</option>
+                            <option value="ipva" {% if tipo_filter == 'ipva' %}selected{% endif %}>IPVA</option>
+                            <option value="seguro" {% if tipo_filter == 'seguro' %}selected{% endif %}>Seguro</option>
+                            <option value="manutencao" {% if tipo_filter == 'manutencao' %}selected{% endif %}>Manutenção</option>
+                            <option value="revisao" {% if tipo_filter == 'revisao' %}selected{% endif %}>Revisão</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="status">
+                            <option value="">Todos Status</option>
+                            <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendente</option>
+                            <option value="enviado" {% if status_filter == 'enviado' %}selected{% endif %}>Enviado</option>
+                            <option value="concluido" {% if status_filter == 'concluido' %}selected{% endif %}>Concluído</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-search"></i></button>
+                        <a href="{% url 'alerta_list' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Veículo</th>
+                                <th>Tipo</th>
+                                <th>Mensagem</th>
+                                <th>Data</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for alerta in page_obj %}
+                            <tr>
+                                <td>
+                                    {% if alerta.veiculo %}
+                                    <a class="table-link" href="{% url 'veiculo_detail' alerta.veiculo.pk %}">{{ alerta.veiculo.placa }}</a>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>{{ alerta.get_tipo_display }}</td>
+                                <td>{{ alerta.mensagem }}</td>
+                                <td>{{ alerta.data_alerta|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if alerta.status == 'pendente' %}
+                                    <span class="badge-status badge-manutencao">Pendente</span>
+                                    {% elif alerta.status == 'enviado' %}
+                                    <span class="badge-status" style="background:#dbeafe;color:#1d4ed8;">Enviado</span>
+                                    {% else %}
+                                    <span class="badge-status badge-ativo">Concluído</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted empty-state">
+                                    <i class="bi bi-bell-slash fs-1 d-block mb-2"></i>
+                                    Nenhum alerta encontrado
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+
+{% block title %}Despesas - Gestão de Frota{% endblock %}
+
+{% block page_title %}Despesas{% endblock %}
+
+{% block content %}
+<section class="page-hero mb-4">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-7">
+            <div class="page-eyebrow">Financeiro Operacional</div>
+            <h2 class="section-title mb-2">Controle de despesas da frota</h2>
+            <p class="page-subtitle">Registre custos administrativos e operacionais para manter visibilidade financeira por veículo e por situação de pagamento.</p>
+        </div>
+        <div class="col-lg-5">
+            <div class="stats-strip">
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">Pagas</div>
+                    <div class="stats-strip-value">{{ despesas_pagas }}</div>
+                </div>
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">Pendentes</div>
+                    <div class="stats-strip-value">{{ despesas_pendentes }}</div>
+                </div>
+                <div class="stats-strip-item">
+                    <div class="stats-strip-label">Em análise</div>
+                    <div class="stats-strip-value">{{ despesas_em_analise }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header card-header-accent">
+                <div class="panel-title text-white mb-1"><i class="bi bi-cash-coin"></i> Nova Despesa</div>
+                <p class="panel-subtitle text-white-50">Cadastre despesas extras e recorrentes da frota.</p>
+            </div>
+            <div class="card-body">
+                <form class="form-stack" method="post" action="{% url 'despesa_create' %}">
+                    {% csrf_token %}
+                    {{ form.veiculo.label_tag }}
+                    {{ form.veiculo }}
+                    {{ form.tipo.label_tag }}
+                    {{ form.tipo }}
+                    {{ form.descricao.label_tag }}
+                    {{ form.descricao }}
+                    {{ form.valor.label_tag }}
+                    {{ form.valor }}
+                    {{ form.data.label_tag }}
+                    {{ form.data }}
+                    {{ form.status.label_tag }}
+                    {{ form.status }}
+                    {{ form.data_pagamento.label_tag }}
+                    {{ form.data_pagamento }}
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-check-lg"></i> Cadastrar Despesa
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <div class="panel-title">Lista de Despesas</div>
+                <p class="panel-subtitle mb-3">Filtre custos por veículo, categoria e status de pagamento.</p>
+                <form method="get" class="row g-3 filter-toolbar">
+                    <div class="col-md-4">
+                        <select class="form-select" name="veiculo">
+                            <option value="">Todos Veículos</option>
+                            {% for item in veiculos %}
+                            <option value="{{ item.pk }}" {% if veiculo_filter == item.pk|stringformat:'s' %}selected{% endif %}>{{ item.placa }} - {{ item.modelo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="tipo">
+                            <option value="">Todos Tipos</option>
+                            <option value="ipva" {% if tipo_filter == 'ipva' %}selected{% endif %}>IPVA</option>
+                            <option value="seguro" {% if tipo_filter == 'seguro' %}selected{% endif %}>Seguro</option>
+                            <option value="multa" {% if tipo_filter == 'multa' %}selected{% endif %}>Multa</option>
+                            <option value="pedagio" {% if tipo_filter == 'pedagio' %}selected{% endif %}>Pedágio</option>
+                            <option value="licenciamento" {% if tipo_filter == 'licenciamento' %}selected{% endif %}>Licenciamento</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" name="status">
+                            <option value="">Todos Status</option>
+                            <option value="pendente" {% if status_filter == 'pendente' %}selected{% endif %}>Pendente</option>
+                            <option value="analise" {% if status_filter == 'analise' %}selected{% endif %}>Em análise</option>
+                            <option value="pago" {% if status_filter == 'pago' %}selected{% endif %}>Pago</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill"><i class="bi bi-search"></i></button>
+                        <a href="{% url 'despesa_list' %}" class="btn btn-outline-secondary">Limpar</a>
+                    </div>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <span class="action-chip">Total filtrado: R$ {{ total_despesas|floatformat:2 }}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Veículo</th>
+                                <th>Tipo</th>
+                                <th>Valor</th>
+                                <th>Data</th>
+                                <th>Pagamento</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for despesa in page_obj %}
+                            <tr>
+                                <td><a class="table-link" href="{% url 'veiculo_detail' despesa.veiculo.pk %}">{{ despesa.veiculo.placa }}</a></td>
+                                <td>{{ despesa.get_tipo_display }}</td>
+                                <td>R$ {{ despesa.valor|floatformat:2 }}</td>
+                                <td>{{ despesa.data|date:"d/m/Y" }}</td>
+                                <td>{{ despesa.data_pagamento|date:"d/m/Y"|default:"-" }}</td>
+                                <td>
+                                    {% if despesa.status == 'pago' %}
+                                    <span class="badge-status badge-ativo">Pago</span>
+                                    {% elif despesa.status == 'analise' %}
+                                    <span class="badge-status" style="background:#dbeafe;color:#1d4ed8;">Em análise</span>
+                                    {% else %}
+                                    <span class="badge-status badge-manutencao">Pendente</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted empty-state">
+                                    <i class="bi bi-wallet2 fs-1 d-block mb-2"></i>
+                                    Nenhuma despesa encontrada
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
