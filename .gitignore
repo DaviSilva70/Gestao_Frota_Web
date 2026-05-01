@@ -61,17 +61,6 @@ media/
 *.webp
 *.pdf
 
-# Documentação e arquivos ignorados
-_ignorados/
-_reversa_sdd/
-.claude/
-.claude-memory/
-.cursorrules/
-.github/
-.agent/
-.reversa/
-gestao_frota.md
-
 # Testing
 .coverage
 htmlcov/
