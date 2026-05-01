@@ -34,9 +34,6 @@ db.sqlite3-journal
 /staticfiles/
 /mediafiles/
 
-# Django migrations (ignore all except initial)
-# veiculos/migrations/ !veiculos/migrations/__init__.py
-
 # IDE
 .vscode/
 .idea/
@@ -64,7 +61,7 @@ media/
 *.webp
 *.pdf
 
-# Documentação gerada
+# Documentação e arquivos ignorados
 _ignorados/
 _reversa_sdd/
 .claude/
